@@ -127,3 +127,22 @@
     @apply font-sans;
   }
 }
+
+@layer components {
+  .craft-node-renderer {
+    left: var(--x);
+    top: var(--y);
+    width: var(--width);
+    height: var(--height);
+  }
+
+  /* Mobile override */
+  @media (max-width: 768px) {
+    .craft-node-renderer {
+      left: var(--m-x) !important;
+      top: var(--m-y) !important;
+      width: var(--m-width) !important;
+      height: var(--m-height) !important;
+    }
+  }
+}

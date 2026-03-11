@@ -1,14 +1,58 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+model Tenant {
+  id                  String         @id @default(uuid()) @db.Uuid
+  name                String
+  subdomain           String?        @unique
+  custom_domain       String?        @unique
+  subscription_status String         @default("INACTIVE")
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  users               User[]
+  pages               Page[]
+  subscriptions       Subscription[]
+}
+
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  tenant_id     String   @db.Uuid
+  email         String   @unique
+  password_hash String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant        Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+}
+
+model Page {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenant_id String   @db.Uuid
+  slug      String
+  title     String
+  content   Json     @db.JsonB
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant    Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  @@unique([tenant_id, slug])
+}
+
+model Subscription {
+  id           String   @id @default(uuid()) @db.Uuid
+  tenant_id    String   @db.Uuid
+  provider_ref String   @unique
+  status       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  tenant       Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 }
