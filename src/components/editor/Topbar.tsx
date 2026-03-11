@@ -30,7 +30,7 @@ export const Topbar = ({ pageId }: { pageId?: string }) => {
             const response = await fetch(`/api/pages/${pageId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content: compressed })
+                body: JSON.stringify({ content: { format: 'lzutf8', data: compressed } })
             });
 
             if (response.ok) {
@@ -54,19 +54,35 @@ export const Topbar = ({ pageId }: { pageId?: string }) => {
                 {/* Device Toggle */}
                 <div className="flex items-center bg-muted rounded-md border text-muted-foreground ml-4">
                     <button
-                        className={`p-1.5 transition ${device === 'desktop' ? 'bg-white shadow-sm text-indigo-600 rounded' : 'hover:bg-gray-200'}`}
+                        className={`p-1.5 transition ${device === 'desktop' ? 'bg-background shadow-sm text-primary rounded' : 'hover:bg-accent'}`}
                         onClick={() => setDevice('desktop')}
                         title="Desktop View"
                     >
                         <Monitor size={16} />
                     </button>
                     <button
-                        className={`p-1.5 transition ${device === 'mobile' ? 'bg-white shadow-sm text-indigo-600 rounded' : 'hover:bg-gray-200'}`}
+                        className={`p-1.5 transition ${device === 'mobile' ? 'bg-background shadow-sm text-primary rounded' : 'hover:bg-accent'}`}
                         onClick={() => setDevice('mobile')}
                         title="Mobile View"
                     >
                         <Smartphone size={16} />
                     </button>
+                </div>
+
+                {/* Theme Color Picker */}
+                <div className="flex items-center gap-2 ml-6 pl-6 border-l">
+                    <span className="text-xs font-medium text-muted-foreground">Theme:</span>
+                    <input
+                        type="color"
+                        defaultValue="#0f172a"
+                        onChange={(e) => {
+                            document.documentElement.style.setProperty('--primary', e.target.value);
+                            // For components that use inline colors based on theme if needed
+                            document.documentElement.style.setProperty('--sidebar-primary', e.target.value);
+                        }}
+                        className="w-6 h-6 p-0 border-0 rounded cursor-pointer overflow-hidden bg-transparent"
+                        title="Set Global Primary Color"
+                    />
                 </div>
             </div>
             <div className="flex items-center gap-2">

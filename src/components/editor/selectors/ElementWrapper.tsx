@@ -4,42 +4,69 @@ import { Rnd } from "react-rnd";
 import { useNode } from "@craftjs/core";
 import { useDevice } from "../DeviceContext";
 
+export interface CommonElementProps {
+    x?: number;
+    y?: number;
+    width?: string | number;
+    height?: string | number;
+    mobileX?: number;
+    mobileY?: number;
+    mobileWidth?: string | number;
+    mobileHeight?: string | number;
+    zIndex?: number;
+    opacity?: number;
+    borderRadius?: string;
+    boxShadow?: string;
+}
+
+export interface ElementWrapperProps extends CommonElementProps {
+    children?: React.ReactNode;
+}
+
 export const ElementWrapper = ({
     children,
     x, y, width, height,
     mobileX, mobileY, mobileWidth, mobileHeight,
     zIndex, opacity = 100, borderRadius = "0px", boxShadow = "none"
-}: any) => {
-    const { isSelected, actions: { setProp }, connectors: { connect } } = useNode((node) => ({
+}: ElementWrapperProps) => {
+    const { isSelected, isHovered, name, actions: { setProp }, connectors: { connect } } = useNode((node) => ({
         isSelected: node.events.selected,
+        isHovered: node.events.hovered,
+        name: node.data.displayName || node.data.name,
     }));
     const { device } = useDevice();
+    const [isManipulating, setIsManipulating] = useState(false);
 
-    const activeX = device === 'mobile' && mobileX !== undefined ? mobileX : x;
-    const activeY = device === 'mobile' && mobileY !== undefined ? mobileY : y;
-    const activeWidth = device === 'mobile' && mobileWidth !== undefined ? mobileWidth : width;
-    const activeHeight = device === 'mobile' && mobileHeight !== undefined ? mobileHeight : height;
+    const activeX = (device === 'mobile' && mobileX !== undefined) ? mobileX : (x || 0);
+    const activeY = (device === 'mobile' && mobileY !== undefined) ? mobileY : (y || 0);
+    const activeWidth = (device === 'mobile' && mobileWidth !== undefined) ? mobileWidth : (width || "auto");
+    const activeHeight = (device === 'mobile' && mobileHeight !== undefined) ? mobileHeight : (height || "auto");
 
-    // Local state to ensure smooth dragging without waiting for Craft state updates
-    const [position, setPosition] = useState({ x: activeX || 0, y: activeY || 0 });
-    const [size, setSize] = useState({ width: activeWidth || "auto", height: activeHeight || "auto" });
-
-    useEffect(() => {
-        setPosition({ x: activeX || 0, y: activeY || 0 });
-    }, [activeX, activeY]);
+    const [position, setPosition] = useState({ x: activeX, y: activeY });
+    const [size, setSize] = useState({ width: activeWidth, height: activeHeight });
 
     useEffect(() => {
-        setSize({ width: activeWidth || "auto", height: activeHeight || "auto" });
-    }, [activeWidth, activeHeight, device]);
+        if (!isManipulating) {
+            setPosition({ x: activeX, y: activeY });
+        }
+    }, [activeX, activeY, isManipulating]);
+
+    useEffect(() => {
+        if (!isManipulating) {
+            setSize({ width: activeWidth, height: activeHeight });
+        }
+    }, [activeWidth, activeHeight, device, isManipulating]);
+
+    const showIndicator = isSelected || isHovered;
 
     return (
         <Rnd
             size={size}
             position={position}
-            onDrag={(e, d) => {
-                setPosition({ x: d.x, y: d.y });
-            }}
+            onDragStart={() => setIsManipulating(true)}
+            onDrag={(e, d) => setPosition({ x: d.x, y: d.y })}
             onDragStop={(e, d) => {
+                setIsManipulating(false);
                 setProp((props: any) => {
                     if (device === 'mobile') {
                         props.mobileX = d.x;
@@ -50,11 +77,13 @@ export const ElementWrapper = ({
                     }
                 });
             }}
+            onResizeStart={() => setIsManipulating(true)}
             onResize={(e, direction, ref, delta, position) => {
                 setSize({ width: ref.style.width, height: ref.style.height });
                 setPosition(position);
             }}
             onResizeStop={(e, direction, ref, delta, position) => {
+                setIsManipulating(false);
                 setProp((props: any) => {
                     if (device === 'mobile') {
                         props.mobileWidth = ref.style.width;
@@ -70,7 +99,7 @@ export const ElementWrapper = ({
                 });
             }}
             bounds="parent"
-            disableDragging={!isSelected} // Only allow drag when clicked/selected
+            disableDragging={!isSelected}
             enableResizing={isSelected ? {
                 top: true, right: true, bottom: true, left: true,
                 topRight: true, bottomRight: true, bottomLeft: true, topLeft: true
@@ -82,8 +111,18 @@ export const ElementWrapper = ({
                 borderRadius: borderRadius || "0px",
                 boxShadow: boxShadow || "none",
             }}
-            className={isSelected ? "border-2 border-indigo-500 border-dashed" : ""}
+            className={`
+                ${!isManipulating ? "transition-all duration-300 ease-in-out" : ""} 
+                ${showIndicator ? "border-2 border-primary border-dashed !z-[100]" : "border-2 border-transparent"}
+                relative group
+            `}
         >
+            {showIndicator && (
+                <div className="absolute -top-[22px] -left-0.5 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-t-sm uppercase tracking-wider whitespace-nowrap z-[101]">
+                    {name}
+                </div>
+            )}
+            
             <div ref={connect as any} className="w-full h-full">
                 {children}
             </div>

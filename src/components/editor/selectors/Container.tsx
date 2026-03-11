@@ -1,20 +1,21 @@
 "use client";
 import React from "react";
 import { useNode } from "@craftjs/core";
+import { CommonElementProps } from "./ElementWrapper";
 
-export type ContainerProps = {
+export interface ContainerProps extends CommonElementProps {
     background?: string;
     padding?: string;
     margin?: string;
     children?: React.ReactNode;
-};
+}
 
-export const Container = React.forwardRef(({
+export const Container = React.forwardRef<HTMLDivElement, ContainerProps>(({
     background = "#ffffff",
     padding = "20px",
     margin = "0px",
     children,
-}: ContainerProps, ref: any) => {
+}, ref) => {
     const { connectors: { connect, drag } } = useNode();
     return (
         <div

@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { notFound } from "next/navigation";
-import { DynamicRenderer } from "@/components/renderer/DynamicRenderer";
+import { DynamicRenderer, SerializedNodes } from "@/components/renderer/DynamicRenderer";
 import LZUTF8 from "lzutf8";
+import { unstable_cache } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,24 @@ interface PageProps {
     params: Promise<{ tenant_id: string; slug: string }>;
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
+
+const getCachedPage = unstable_cache(
+    async (tenantId: string, slug: string) => {
+        return await prisma.page.findUnique({
+            where: {
+                tenant_id_slug: {
+                    tenant_id: tenantId,
+                    slug: slug,
+                },
+            },
+            include: {
+                tenant: true
+            }
+        });
+    },
+    ['tenant-page'],
+    { revalidate: 60, tags: ['pages'] }
+);
 
 export default async function TenantPage({ params }: PageProps) {
     const { tenant_id, slug } = await params;
@@ -39,18 +58,8 @@ export default async function TenantPage({ params }: PageProps) {
         tenantIdToSearch = tenant.id;
     }
 
-    // Fetch from DB
-    const page = await prisma.page.findUnique({
-        where: {
-            tenant_id_slug: {
-                tenant_id: tenantIdToSearch,
-                slug: slug,
-            },
-        },
-        include: {
-            tenant: true
-        }
-    });
+    // Fetch from DB using cache
+    const page = await getCachedPage(tenantIdToSearch, slug);
 
     if (!page || !page.content) {
         return notFound();

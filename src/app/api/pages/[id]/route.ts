@@ -49,8 +49,8 @@ export async function PUT(
         const body = await req.json();
         const { content } = body;
 
-        if (!content) {
-            return new NextResponse("Content is required", { status: 400 });
+        if (!content || !content.format || !content.data) {
+            return new NextResponse("Invalid content format", { status: 400 });
         }
 
         // Verify ownership

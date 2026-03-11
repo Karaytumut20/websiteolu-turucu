@@ -2,14 +2,22 @@
 import React from "react";
 import { useNode } from "@craftjs/core";
 import ContentEditable from "react-contenteditable";
-import { ElementWrapper } from "./ElementWrapper";
+import { ElementWrapper, CommonElementProps } from "./ElementWrapper";
 
-export const Heading = React.forwardRef(({
-    text, level, textAlign, color, href,
+export interface HeadingProps extends CommonElementProps {
+    text?: string;
+    level?: number;
+    textAlign?: any; // ContentEditable alignment
+    color?: string;
+    href?: string;
+}
+
+export const Heading = React.forwardRef<HTMLDivElement, HeadingProps>(({
+    text = "Heading", level = 2, textAlign = "left", color = "#000000", href,
     x = 0, y = 0, width = "auto", height = "auto",
     mobileX, mobileY, mobileWidth, mobileHeight,
     zIndex = 1, opacity = 100, borderRadius = "0px", boxShadow = "none"
-}: any, ref) => {
+}, ref) => {
     const { hasSelectedNode, actions: { setProp } } = useNode((node) => ({
         hasSelectedNode: node.events.selected,
     }));

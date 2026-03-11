@@ -2,14 +2,21 @@
 import React from "react";
 import { useNode } from "@craftjs/core";
 import ContentEditable from "react-contenteditable";
-import { ElementWrapper } from "./ElementWrapper";
+import { ElementWrapper, CommonElementProps } from "./ElementWrapper";
 
-export const Text = React.forwardRef(({
+export interface TextProps extends CommonElementProps {
+    text?: string;
+    fontSize?: number;
+    textAlign?: any; // ContentEditable alignment
+    href?: string;
+}
+
+export const Text = React.forwardRef<HTMLDivElement, TextProps>(({
     text, fontSize, textAlign, href,
     x = 0, y = 0, width = "auto", height = "auto",
     mobileX, mobileY, mobileWidth, mobileHeight,
     zIndex = 1, opacity = 100, borderRadius = "0px", boxShadow = "none"
-}: any, ref) => {
+}, ref) => {
     const { hasSelectedNode, actions: { setProp } } = useNode((node) => ({
         hasSelectedNode: node.events.selected,
     }));
@@ -22,7 +29,7 @@ export const Text = React.forwardRef(({
         >
             <div ref={ref as any} className="w-full h-full text-base">
                 <ContentEditable
-                    html={text}
+                    html={text || ""}
                     disabled={!hasSelectedNode}
                     onChange={(e: any) =>
                         setProp((props: any) => (props.text = e.target.value))

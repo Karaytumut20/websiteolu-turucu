@@ -1,15 +1,22 @@
 "use client";
 import React from "react";
 import { useNode } from "@craftjs/core";
-import { ElementWrapper } from "./ElementWrapper";
+import { ElementWrapper, CommonElementProps } from "./ElementWrapper";
 
-export const Image = React.forwardRef(({
+export interface ImageProps extends CommonElementProps {
+    src?: string;
+    alt?: string;
+    objectFit?: any;
+    href?: string;
+}
+
+export const Image = React.forwardRef<HTMLDivElement, ImageProps>(({
     src, alt, objectFit, href,
     width = "300px", height = "auto",
     x = 0, y = 0,
     mobileX, mobileY, mobileWidth, mobileHeight,
     zIndex = 1, opacity = 100, borderRadius = "0px", boxShadow = "none"
-}: any, ref) => {
+}, ref) => {
 
     return (
         <ElementWrapper

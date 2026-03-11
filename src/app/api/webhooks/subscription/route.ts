@@ -23,12 +23,9 @@ export async function POST(req: Request) {
             .update(rawBody)
             .digest("base64");
 
-        // Commented out strict check for MVP, in production this should be strictly checked.
-        /*
         if (signature !== expectedSignature) {
-          return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+            return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
         }
-        */
 
         if (payload.iyziEventType === "subscription.order.success") {
             const { subscriptionReferenceCode } = payload;

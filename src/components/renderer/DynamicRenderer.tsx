@@ -1,5 +1,19 @@
 import React from "react";
 
+export interface SerializedNode {
+    type: string | { resolvedName: string };
+    isCanvas: boolean;
+    props: Record<string, any>;
+    displayName: string;
+    custom: Record<string, any>;
+    hidden: boolean;
+    nodes: string[];
+    linkedNodes: Record<string, string>;
+    parent: string | null;
+}
+
+export type SerializedNodes = Record<string, SerializedNode>;
+
 // Mapping Craft.js resolvedNames to standard HTML tags or internal Server Components
 const componentMap: Record<string, any> = {
     Container: "div",
@@ -13,7 +27,7 @@ const componentMap: Record<string, any> = {
     NavigationBar: "header",
 };
 
-export function DynamicRenderer({ nodes, rootNodeId = "ROOT" }: { nodes: any; rootNodeId?: string }) {
+export function DynamicRenderer({ nodes, rootNodeId = "ROOT" }: { nodes: SerializedNodes; rootNodeId?: string }) {
     if (!nodes || !nodes[rootNodeId]) {
         return null;
     }
@@ -84,7 +98,7 @@ export function DynamicRenderer({ nodes, rootNodeId = "ROOT" }: { nodes: any; ro
     }
 
     // Clean up undefined/null values or non-standard DOM props
-    if (ComponentType === "div" && type?.resolvedName === "Container") {
+    if (ComponentType === "div" && (typeof type !== "string" && type?.resolvedName === "Container")) {
         processedProps.style = {
             background: props.background,
             padding: props.padding,
@@ -97,21 +111,23 @@ export function DynamicRenderer({ nodes, rootNodeId = "ROOT" }: { nodes: any; ro
         delete processedProps.margin;
     }
 
-    if (type?.resolvedName === "Text") {
+    const resolvedName = typeof type === "string" ? type : type?.resolvedName;
+
+    if (resolvedName === "Text") {
         processedProps.style = {
             fontSize: `${props.fontSize}px`,
             textAlign: props.textAlign,
         };
-        processedProps.dangerouslySetInnerHTML = { __html: props.text };
+        processedProps.dangerouslySetInnerHTML = { __html: props.text || "" };
         delete processedProps.text;
         delete processedProps.fontSize;
         delete processedProps.textAlign;
     }
 
-    if (type?.resolvedName === "Heading") {
+    if (resolvedName === "Heading") {
         ComponentType = `h${props.level || 2}`;
         processedProps.style = { textAlign: props.textAlign, color: props.color };
-        processedProps.dangerouslySetInnerHTML = { __html: props.text };
+        processedProps.dangerouslySetInnerHTML = { __html: props.text || "" };
         // Simplified Tailwind classes for mapping
         const sizes = {
             1: "text-4xl font-extrabold tracking-tight lg:text-5xl",
@@ -128,7 +144,7 @@ export function DynamicRenderer({ nodes, rootNodeId = "ROOT" }: { nodes: any; ro
         delete processedProps.color;
     }
 
-    if (type?.resolvedName === "Button") {
+    if (resolvedName === "Button") {
         processedProps.style = { backgroundColor: props.variant === "default" ? props.color : undefined };
         processedProps.className = "inline-flex items-center justify-center rounded-md font-medium h-10 px-4 py-2 text-white"; // Simplified
         processedProps.children = props.text;
@@ -138,7 +154,7 @@ export function DynamicRenderer({ nodes, rootNodeId = "ROOT" }: { nodes: any; ro
         delete processedProps.color;
     }
 
-    if (type?.resolvedName === "Image") {
+    if (resolvedName === "Image") {
         processedProps.style = { objectFit: props.objectFit, width: "100%", height: "100%" };
         // Wrap inside a div to maintain width/height
         const wrapperStyle = { width: props.width, height: props.height };
@@ -168,24 +184,24 @@ export function DynamicRenderer({ nodes, rootNodeId = "ROOT" }: { nodes: any; ro
         renderedChildren = null;
     }
 
-    if (type?.resolvedName === "HeroSection") {
+    if (resolvedName === "HeroSection") {
         processedProps.className = "w-full relative py-24 px-6 md:px-12 lg:px-24 rounded-2xl overflow-hidden shadow-sm";
         processedProps.style = { ...processedProps.style, background: props.background };
         delete processedProps.background;
     }
 
-    if (type?.resolvedName === "InfoCard") {
+    if (resolvedName === "InfoCard") {
         processedProps.className = "w-full h-full bg-white rounded-xl shadow-lg border p-6 flex flex-col gap-3 transition-transform hover:-translate-y-1";
         processedProps.style = { ...processedProps.style, borderColor: props.borderColor };
         delete processedProps.borderColor;
     }
 
-    if (type?.resolvedName === "PricingTable") {
+    if (resolvedName === "PricingTable") {
         processedProps.className = "w-full py-16 px-4 bg-gray-50 rounded-2xl";
         // inner content is hydrated by DynamicRenderer recursing into nodes
     }
 
-    if (type?.resolvedName === "NavigationBar") {
+    if (resolvedName === "NavigationBar") {
         processedProps.className = "w-full h-full flex items-center justify-between px-6 md:px-10";
         processedProps.style = { ...processedProps.style, backgroundColor: props.backgroundColor };
         delete processedProps.backgroundColor;

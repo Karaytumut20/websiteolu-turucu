@@ -17,71 +17,73 @@ export const Toolbox = () => {
 
     const tools = [
         {
-            icon: <BoxSelect size={20} className="text-gray-600 mb-1" />,
+            icon: <BoxSelect size={16} className="text-foreground" />,
             name: "Container",
             element: <Element is={Container} padding="20px" canvas />
         },
         {
-            icon: <Heading1 size={20} className="text-gray-600 mb-1" />,
+            icon: <Heading1 size={16} className="text-foreground" />,
             name: "Heading",
             element: <Heading text="New Heading" />
         },
         {
-            icon: <Type size={20} className="text-gray-600 mb-1" />,
+            icon: <Type size={16} className="text-foreground" />,
             name: "Text",
             element: <Text text="New Text Block" />
         },
         {
-            icon: <SquareFunction size={20} className="text-gray-600 mb-1" />,
+            icon: <SquareFunction size={16} className="text-foreground" />,
             name: "Button",
             element: <Button text="Click Me" />
         },
         {
-            icon: <ImageIcon size={20} className="text-gray-600 mb-1" />,
+            icon: <ImageIcon size={16} className="text-foreground" />,
             name: "Image",
             element: <Image />
         },
         {
-            icon: <PanelTop size={20} className="text-indigo-600 mb-1" />,
+            icon: <PanelTop size={16} className="text-primary" />,
             name: "Hero Section",
             element: <HeroSection />
         },
         {
-            icon: <LayoutTemplate size={20} className="text-indigo-600 mb-1" />,
+            icon: <LayoutTemplate size={16} className="text-primary" />,
             name: "Info Card",
             element: <InfoCard />
         },
         {
-            icon: <CreditCard size={20} className="text-indigo-600 mb-1" />,
+            icon: <CreditCard size={16} className="text-primary" />,
             name: "Pricing",
             element: <PricingTable />
         },
         {
-            icon: <Navigation size={20} className="text-indigo-600 mb-1" />,
+            icon: <Navigation size={16} className="text-primary" />,
             name: "Navbar",
             element: <NavigationBar />
         }
     ];
 
     return (
-        <div className="w-64 border-r bg-background flex flex-col h-full overflow-y-auto">
-            <div className="p-4 border-b">
-                <h2 className="text-lg font-semibold tracking-tight">Add Elements</h2>
-                <p className="text-xs text-muted-foreground mt-1">Drag and drop into the canvas</p>
+        <div className="w-[260px] border-r bg-sidebar text-sidebar-foreground flex flex-col h-full overflow-y-auto">
+            <div className="p-4 border-b bg-sidebar">
+                <h2 className="text-sm font-semibold tracking-tight">Components</h2>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Drag and drop to canvas</p>
             </div>
 
             <div className="p-4">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                     {tools.map((tool, idx) => (
                         <button
                             key={idx}
                             ref={(ref) => {
                                 if (ref) connectors.create(ref, tool.element);
                             }}
-                            className="flex flex-col items-center justify-center p-3 border rounded-lg bg-card text-card-foreground shadow-sm hover:border-indigo-500 hover:shadow-md transition-all cursor-grab"
+                            className="flex flex-col items-center justify-center p-3 border border-transparent rounded-md bg-transparent text-sidebar-foreground hover:bg-accent hover:text-accent-foreground transition-all cursor-grab active:cursor-grabbing group"
                         >
-                            {tool.icon}
-                            <span className="text-xs font-medium">{tool.name}</span>
+                            <div className="p-2 bg-background border shadow-sm rounded-md group-hover:border-primary/50 transition-colors mb-2">
+                                {tool.icon}
+                            </div>
+                            <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground">{tool.name}</span>
                         </button>
                     ))}
                 </div>

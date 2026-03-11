@@ -2,6 +2,9 @@
 import React from 'react';
 import { useEditor } from '@craftjs/core';
 import { useDevice } from './DeviceContext';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export const SettingsPanel = () => {
     const { device } = useDevice();
@@ -27,30 +30,59 @@ export const SettingsPanel = () => {
 
     if (!selected) {
         return (
-            <div className="w-80 border-l bg-background p-4 flex flex-col h-full overflow-y-auto">
-                <h2 className="text-lg font-semibold mb-4 border-b pb-2">Settings</h2>
-                <div className="text-sm text-muted-foreground flex items-center justify-center h-full">
-                    Select an element to edit its properties
+            <div className="w-[300px] border-l bg-sidebar text-sidebar-foreground p-0 flex flex-col h-full overflow-y-auto">
+                <div className="p-4 border-b bg-sidebar">
+                    <h2 className="text-sm font-semibold tracking-tight">Settings</h2>
+                </div>
+                <div className="text-[13px] text-muted-foreground flex items-center justify-center h-full p-6 text-center">
+                    Select an element to edit properties
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="w-80 border-l bg-background p-4 flex flex-col h-full overflow-y-auto">
-            <h2 className="text-lg font-semibold mb-4 border-b pb-2">
-                {selected.name} Settings
-            </h2>
-            <div className="flex-1">
-                {selected.settings && React.createElement(selected.settings)}
+        <div className="w-[300px] border-l bg-sidebar text-sidebar-foreground p-0 flex flex-col h-full overflow-y-auto overflow-x-hidden">
+            <div className="p-4 border-b bg-sidebar">
+                <h2 className="text-sm font-semibold tracking-tight">
+                    {selected.name}
+                </h2>
+                <p className="text-[11px] text-muted-foreground mt-0.5">Configure styling and properties</p>
+            </div>
+            
+            <div className="flex-1 p-4">
+                <Tabs defaultValue="props" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3 mb-4 bg-muted/50 text-muted-foreground h-8 p-1">
+                        <TabsTrigger value="props" className="text-[11px] h-6 py-0 disabled:opacity-50" disabled={!selected.settings}>Props</TabsTrigger>
+                        <TabsTrigger value="layout" className="text-[11px] h-6 py-0">Layout</TabsTrigger>
+                        <TabsTrigger value="style" className="text-[11px] h-6 py-0">Style</TabsTrigger>
+                    </TabsList>
 
-                {selected.name !== "Container" && (
-                    <div className="mt-6 border-t pt-4">
-                        <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">Dimensions & Position</h3>
+                    <TabsContent value="props" className="space-y-4 outline-none">
+                        {selected.settings && React.createElement(selected.settings)}
+                        
+                        {/* Interactions */}
+                        <div className="pt-4 mt-4 border-t border-border/50">
+                            <Label className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold mb-3 block">Interactions</Label>
+                            <div className="space-y-1">
+                                <Label className="text-[12px] font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Action Link (URL)</Label>
+                                <Input
+                                    type="text"
+                                    value={selected.props.href || ""}
+                                    onChange={(e) => actions.setProp(selected.id, (props: any) => props.href = e.target.value)}
+                                    placeholder="https://example.com"
+                                    className="h-8 text-[13px] bg-background"
+                                />
+                            </div>
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="layout" className="space-y-4 outline-none">
+                        <Label className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold mb-1 block">Dimensions & Position</Label>
                         <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label className="text-xs font-medium text-gray-500">X (px)</label>
-                                <input
+                            <div className="space-y-1.5">
+                                <Label className="text-[11px] font-medium text-muted-foreground">X (px)</Label>
+                                <Input
                                     type="number"
                                     value={device === 'mobile' ? (selected.props.mobileX !== undefined ? selected.props.mobileX : selected.props.x || 0) : (selected.props.x || 0)}
                                     onChange={(e) => {
@@ -59,12 +91,12 @@ export const SettingsPanel = () => {
                                             else props.x = parseInt(e.target.value);
                                         });
                                     }}
-                                    className="w-full mt-1 border rounded px-2 py-1 text-sm bg-muted/50"
+                                    className="h-8 text-[12px] bg-background font-mono"
                                 />
                             </div>
-                            <div>
-                                <label className="text-xs font-medium text-gray-500">Y (px)</label>
-                                <input
+                            <div className="space-y-1.5">
+                                <Label className="text-[11px] font-medium text-muted-foreground">Y (px)</Label>
+                                <Input
                                     type="number"
                                     value={device === 'mobile' ? (selected.props.mobileY !== undefined ? selected.props.mobileY : selected.props.y || 0) : (selected.props.y || 0)}
                                     onChange={(e) => {
@@ -73,12 +105,12 @@ export const SettingsPanel = () => {
                                             else props.y = parseInt(e.target.value);
                                         });
                                     }}
-                                    className="w-full mt-1 border rounded px-2 py-1 text-sm bg-muted/50"
+                                    className="h-8 text-[12px] bg-background font-mono"
                                 />
                             </div>
-                            <div>
-                                <label className="text-xs font-medium text-gray-500">Width</label>
-                                <input
+                            <div className="space-y-1.5">
+                                <Label className="text-[11px] font-medium text-muted-foreground">Width</Label>
+                                <Input
                                     type="text"
                                     value={device === 'mobile' ? (selected.props.mobileWidth !== undefined ? selected.props.mobileWidth : selected.props.width || "auto") : (selected.props.width || "auto")}
                                     onChange={(e) => {
@@ -87,12 +119,12 @@ export const SettingsPanel = () => {
                                             else props.width = e.target.value;
                                         });
                                     }}
-                                    className="w-full mt-1 border rounded px-2 py-1 text-sm bg-muted/50"
+                                    className="h-8 text-[12px] bg-background font-mono"
                                 />
                             </div>
-                            <div>
-                                <label className="text-xs font-medium text-gray-500">Height</label>
-                                <input
+                            <div className="space-y-1.5">
+                                <Label className="text-[11px] font-medium text-muted-foreground">Height</Label>
+                                <Input
                                     type="text"
                                     value={device === 'mobile' ? (selected.props.mobileHeight !== undefined ? selected.props.mobileHeight : selected.props.height || "auto") : (selected.props.height || "auto")}
                                     onChange={(e) => {
@@ -101,17 +133,17 @@ export const SettingsPanel = () => {
                                             else props.height = e.target.value;
                                         });
                                     }}
-                                    className="w-full mt-1 border rounded px-2 py-1 text-sm bg-muted/50"
+                                    className="h-8 text-[12px] bg-background font-mono"
                                 />
                             </div>
                         </div>
 
                         {/* Layering Z-Index */}
-                        <div className="mt-4 pt-3 border-t">
-                            <label className="text-xs font-medium text-gray-500 flex justify-between">
-                                <span>Layer (Z-Index)</span>
-                                <span>{selected.props.zIndex || 1}</span>
-                            </label>
+                        <div className="pt-4 mt-4 border-t border-border/50">
+                            <div className="flex justify-between mb-2">
+                                <Label className="text-[11px] font-medium text-foreground">Z-Index Layer</Label>
+                                <span className="text-[11px] font-mono text-muted-foreground">{selected.props.zIndex || 1}</span>
+                            </div>
                             <input
                                 type="range"
                                 min="1"
@@ -120,81 +152,58 @@ export const SettingsPanel = () => {
                                 onChange={(e) => {
                                     actions.setProp(selected.id, (props: any) => props.zIndex = parseInt(e.target.value))
                                 }}
-                                className="w-full mt-2"
+                                className="w-full accent-primary h-1.5 bg-muted rounded-lg appearance-none cursor-pointer"
+                            />
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="style" className="space-y-5 outline-none">
+                        <Label className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold mb-1 block">Advanced Styling</Label>
+                        
+                        <div className="space-y-2">
+                            <div className="flex justify-between mb-1">
+                                <Label className="text-[12px] font-medium">Opacity</Label>
+                                <span className="text-[11px] font-mono text-muted-foreground">{selected.props.opacity !== undefined ? selected.props.opacity : 100}%</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="0"
+                                max="100"
+                                value={selected.props.opacity !== undefined ? selected.props.opacity : 100}
+                                onChange={(e) => {
+                                    actions.setProp(selected.id, (props: any) => props.opacity = parseInt(e.target.value))
+                                }}
+                                className="w-full accent-primary h-1.5 bg-muted rounded-lg appearance-none cursor-pointer"
                             />
                         </div>
 
-                        {/* Advanced Styling */}
-                        <div className="mt-4 pt-3 border-t">
-                            <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">Advanced Styling</h3>
-
-                            {/* Opacity */}
-                            <div className="mb-3">
-                                <label className="text-xs font-medium text-gray-500 flex justify-between">
-                                    <span>Opacity (%)</span>
-                                    <span>{selected.props.opacity !== undefined ? selected.props.opacity : 100}</span>
-                                </label>
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    value={selected.props.opacity !== undefined ? selected.props.opacity : 100}
-                                    onChange={(e) => {
-                                        actions.setProp(selected.id, (props: any) => props.opacity = parseInt(e.target.value))
-                                    }}
-                                    className="w-full mt-2"
-                                />
-                            </div>
-
-                            {/* Border Radius */}
-                            <div className="mb-3">
-                                <label className="text-xs font-medium text-gray-500">Border Radius</label>
-                                <input
-                                    type="text"
-                                    value={selected.props.borderRadius || "0px"}
-                                    onChange={(e) => {
-                                        actions.setProp(selected.id, (props: any) => props.borderRadius = e.target.value)
-                                    }}
-                                    className="w-full mt-1 border rounded px-2 py-1 text-sm bg-muted/50"
-                                    placeholder="e.g. 8px, 50%"
-                                />
-                            </div>
-
-                            {/* Box Shadow */}
-                            <div className="mb-3">
-                                <label className="text-xs font-medium text-gray-500">Box Shadow (CSS)</label>
-                                <input
-                                    type="text"
-                                    value={selected.props.boxShadow || "none"}
-                                    onChange={(e) => {
-                                        actions.setProp(selected.id, (props: any) => props.boxShadow = e.target.value)
-                                    }}
-                                    className="w-full mt-1 border rounded px-2 py-1 text-sm bg-muted/50"
-                                    placeholder="e.g. 0 4px 6px rgba(0,0,0,0.1)"
-                                />
-                            </div>
-                        </div>
-                        {/* Active Links / Actions */}
-                        <div className="mt-4 pt-3 border-t">
-                            <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wider">Interactions</h3>
-
-                            <div className="mb-3">
-                                <label className="text-xs font-medium text-gray-500">Action Link (URL)</label>
-                                <input
-                                    type="text"
-                                    value={selected.props.href || ""}
-                                    onChange={(e) => {
-                                        actions.setProp(selected.id, (props: any) => props.href = e.target.value)
-                                    }}
-                                    className="w-full mt-1 border rounded px-2 py-1 text-sm bg-muted/50"
-                                    placeholder="https://example.com or /about"
-                                />
-                                <p className="text-[10px] text-gray-400 mt-1">If set, this element will become clickable in the live site.</p>
-                            </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-[12px] font-medium">Border Radius</Label>
+                            <Input
+                                type="text"
+                                value={selected.props.borderRadius || "0px"}
+                                onChange={(e) => {
+                                    actions.setProp(selected.id, (props: any) => props.borderRadius = e.target.value)
+                                }}
+                                className="h-8 text-[12px] bg-background font-mono"
+                                placeholder="0px, 8px, 50%, etc."
+                            />
                         </div>
 
-                    </div>
-                )}
+                        <div className="space-y-1.5">
+                            <Label className="text-[12px] font-medium">Box Shadow</Label>
+                            <Input
+                                type="text"
+                                value={selected.props.boxShadow || "none"}
+                                onChange={(e) => {
+                                    actions.setProp(selected.id, (props: any) => props.boxShadow = e.target.value)
+                                }}
+                                className="h-8 text-[12px] bg-background font-mono"
+                                placeholder="0 4px 6px rgba(0,0,0,0.1)"
+                            />
+                        </div>
+                    </TabsContent>
+                </Tabs>
             </div>
         </div>
     );
