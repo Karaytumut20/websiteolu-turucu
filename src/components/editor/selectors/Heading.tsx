@@ -2,22 +2,29 @@
 import React from "react";
 import { useNode } from "@craftjs/core";
 import ContentEditable from "react-contenteditable";
-import { ElementWrapper, CommonElementProps } from "./ElementWrapper";
+import { FreeformWrapper, CommonElementProps } from "./FreeformWrapper";
 
 export interface HeadingProps extends CommonElementProps {
     text?: string;
     level?: number;
-    textAlign?: any; // ContentEditable alignment
+    textAlign?: string;
+    fontWeight?: string;
+    letterSpacing?: string;
+    textTransform?: string;
     color?: string;
     href?: string;
+    padding?: string;
+    margin?: string;
+    isAbsolute?: boolean;
 }
 
-export const Heading = React.forwardRef<HTMLDivElement, HeadingProps>(({
-    text = "Heading", level = 2, textAlign = "left", color = "#000000", href,
-    x = 0, y = 0, width = "auto", height = "auto",
-    mobileX, mobileY, mobileWidth, mobileHeight,
+export const Heading = ({
+    text = "Heading", level = 2, textAlign = "left", color = "var(--builder-text)",
+    fontWeight = "600", letterSpacing = "-0.02em", textTransform = "none", href,
+    width = "auto", height = "auto", padding, margin,
+    isAbsolute = true, x = 0, y = 0,
     zIndex = 1, opacity = 100, borderRadius = "0px", boxShadow = "none"
-}, ref) => {
+}: HeadingProps) => {
     const { hasSelectedNode, actions: { setProp } } = useNode((node) => ({
         hasSelectedNode: node.events.selected,
     }));
@@ -33,15 +40,21 @@ export const Heading = React.forwardRef<HTMLDivElement, HeadingProps>(({
     };
 
     return (
-        <ElementWrapper
-            x={x} y={y} width={width} height={height}
-            mobileX={mobileX} mobileY={mobileY} mobileWidth={mobileWidth} mobileHeight={mobileHeight}
+        <FreeformWrapper
+            width={width} height={height} padding={padding} margin={margin}
+            isAbsolute={isAbsolute} x={x} y={y}
             zIndex={zIndex} opacity={opacity} borderRadius={borderRadius} boxShadow={boxShadow}
         >
             <div
-                ref={ref as any}
                 className={`w-full h-full ${sizes[level as keyof typeof sizes]}`}
-                style={{ textAlign, color }}
+                style={{ 
+                    textAlign: textAlign as any, 
+                    color,
+                    fontWeight,
+                    letterSpacing,
+                    textTransform: textTransform as any,
+                    fontFamily: 'var(--builder-font)'
+                }}
             >
                 <ContentEditable
                     html={text}
@@ -50,70 +63,133 @@ export const Heading = React.forwardRef<HTMLDivElement, HeadingProps>(({
                         setProp((props: any) => (props.text = e.target.value))
                     }
                     tagName={Tag as string}
-                    className="outline-none w-full h-full"
+                    className="outline-none w-full h-full content-editable-block"
                 />
             </div>
-        </ElementWrapper>
+        </FreeformWrapper>
     );
-});
+};
 
 export const HeadingSettings = () => {
-    const { actions: { setProp }, level, textAlign, color } = useNode((node) => ({
+    const { actions: { setProp }, level, textAlign, color, fontWeight, letterSpacing, textTransform } = useNode((node) => ({
         level: node.data.props.level,
         textAlign: node.data.props.textAlign,
         color: node.data.props.color,
+        fontWeight: node.data.props.fontWeight,
+        letterSpacing: node.data.props.letterSpacing,
+        textTransform: node.data.props.textTransform,
     }));
 
     return (
         <div className="flex flex-col gap-4 p-4">
-            <div>
-                <label className="text-sm font-medium">Heading Level</label>
-                <select
-                    value={level || 2}
-                    onChange={(e) => setProp((props: any) => props.level = parseInt(e.target.value))}
-                    className="w-full mt-1 border rounded px-2 py-1"
-                >
-                    {[1, 2, 3, 4, 5, 6].map(l => (
-                        <option key={l} value={l}>H{l}</option>
-                    ))}
-                </select>
+            <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                    <label className="text-[11px] font-medium text-muted-foreground">Heading Level</label>
+                    <select
+                        value={level || 2}
+                        onChange={(e) => setProp((props: any) => props.level = parseInt(e.target.value))}
+                        className="w-full h-8 text-[12px] bg-background border rounded px-2"
+                    >
+                        {[1, 2, 3, 4, 5, 6].map(l => (
+                            <option key={l} value={l}>H{l}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="space-y-1.5">
+                    <label className="text-[11px] font-medium text-muted-foreground">Text Align</label>
+                    <select
+                        value={textAlign || "left"}
+                        onChange={(e) => setProp((props: any) => props.textAlign = e.target.value)}
+                        className="w-full h-8 text-[12px] bg-background border rounded px-2"
+                    >
+                        <option value="left">Left</option>
+                        <option value="center">Center</option>
+                        <option value="right">Right</option>
+                        <option value="justify">Justify</option>
+                    </select>
+                </div>
             </div>
-            <div>
-                <label className="text-sm font-medium">Text Align</label>
-                <select
-                    value={textAlign || "left"}
-                    onChange={(e) => setProp((props: any) => props.textAlign = e.target.value)}
-                    className="w-full mt-1 border rounded px-2 py-1"
-                >
-                    <option value="left">Left</option>
-                    <option value="center">Center</option>
-                    <option value="right">Right</option>
-                </select>
+
+            <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                    <label className="text-[11px] font-medium text-muted-foreground">Font Weight</label>
+                    <select
+                        value={fontWeight || "600"}
+                        onChange={(e) => setProp((props: any) => props.fontWeight = e.target.value)}
+                        className="w-full h-8 text-[12px] bg-background border rounded px-2"
+                    >
+                        <option value="300">Light (300)</option>
+                        <option value="400">Regular (400)</option>
+                        <option value="500">Medium (500)</option>
+                        <option value="600">Semibold (600)</option>
+                        <option value="700">Bold (700)</option>
+                        <option value="800">ExtraBold (800)</option>
+                        <option value="900">Black (900)</option>
+                    </select>
+                </div>
+                <div className="space-y-1.5">
+                    <label className="text-[11px] font-medium text-muted-foreground">Transform</label>
+                    <select
+                        value={textTransform || "none"}
+                        onChange={(e) => setProp((props: any) => props.textTransform = e.target.value)}
+                        className="w-full h-8 text-[12px] bg-background border rounded px-2"
+                    >
+                        <option value="none">None</option>
+                        <option value="uppercase">Uppercase</option>
+                        <option value="lowercase">Lowercase</option>
+                        <option value="capitalize">Capitalize</option>
+                    </select>
+                </div>
             </div>
-            <div>
-                <label className="text-sm font-medium">Text Color</label>
-                <input
-                    type="color"
-                    value={color || "#000000"}
-                    onChange={(e) => setProp((props: any) => props.color = e.target.value)}
-                    className="w-full mt-1 h-10 px-1 py-1 rounded"
-                />
+
+            <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                    <label className="text-[11px] font-medium text-muted-foreground">Text Color</label>
+                    <div className="flex items-center gap-2 mt-1">
+                        <input
+                            type="color"
+                            value={color || "#000000"}
+                            onChange={(e) => setProp((props: any) => props.color = e.target.value)}
+                            className="w-8 h-8 p-0 border-0 rounded cursor-pointer"
+                        />
+                        <input 
+                            type="text" 
+                            value={color || "#000000"}
+                            onChange={(e) => setProp((props: any) => props.color = e.target.value)}
+                            className="flex-1 h-8 text-[12px] bg-background border rounded px-2 uppercase font-mono"
+                        />
+                    </div>
+                </div>
+                <div className="space-y-1.5">
+                    <label className="text-[11px] font-medium text-muted-foreground">Letter Spacing</label>
+                    <input
+                        type="text"
+                        value={letterSpacing || "-0.02em"}
+                        onChange={(e) => setProp((props: any) => props.letterSpacing = e.target.value)}
+                        className="w-full h-8 text-[12px] bg-background border rounded px-2 font-mono"
+                        placeholder="e.g. -1px or 2px"
+                    />
+                </div>
             </div>
         </div>
     );
 };
 
-(Heading as any).craft = {
+Heading.craft = {
+    displayName: "Heading",
     props: {
-        text: "Heading Title",
+        text: "Heading",
         level: 2,
         textAlign: "left",
-        color: "#000000",
-        x: 0, y: 0, width: "auto", height: "auto",
-        mobileX: 0, mobileY: 0, mobileWidth: "auto", mobileHeight: "auto",
+        fontWeight: "600",
+        letterSpacing: "-0.02em",
+        textTransform: "none",
+        color: "#0f172a",
+        width: "100%", height: "auto", padding: "0px", margin: "0px",
+        isAbsolute: false, x: 0, y: 0,
         zIndex: 1, opacity: 100, borderRadius: "0px", boxShadow: "none"
     },
     related: {
-        settings: HeadingSettings,
-    },
+        settings: HeadingSettings
+    }
 };

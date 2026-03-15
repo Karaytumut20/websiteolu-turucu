@@ -44,74 +44,71 @@ export function DynamicRenderer({ nodes, rootNodeId = "ROOT" }: { nodes: Seriali
         ComponentType = "div";
     }
 
+    const resolvedName = typeof type === "string" ? type : type?.resolvedName;
+
     // Handle specific prop mapping for standard HTML tags to avoid React hydration/DOM errors
     const processedProps: any = { ...props };
 
-    // Universal absolute positioning for elements managed by Wix-style ElementWrapper
-    if (props.x !== undefined || props.y !== undefined) {
-        // Map positional props to CSS variables for responsive design
-        const mWidth = props.mobileWidth !== undefined
-            ? (typeof props.mobileWidth === 'number' ? `${props.mobileWidth}px` : props.mobileWidth)
-            : (typeof props.width === 'number' ? `${props.width}px` : props.width || "auto");
+    // Universal hybrid positioning
+    const style: React.CSSProperties = {
+        ...processedProps.style,
+        width: typeof props.width === 'number' ? `${props.width}px` : props.width || "auto",
+        height: typeof props.height === 'number' ? `${props.height}px` : props.height || "auto",
+        padding: props.padding,
+        margin: props.margin,
+        zIndex: props.zIndex || 1,
+        opacity: (props.opacity !== undefined ? props.opacity : 100) / 100,
+        borderRadius: props.borderRadius || "0px",
+        boxShadow: props.boxShadow || "none",
+    };
 
-        const mHeight = props.mobileHeight !== undefined
-            ? (typeof props.mobileHeight === 'number' ? `${props.mobileHeight}px` : props.mobileHeight)
-            : (typeof props.height === 'number' ? `${props.height}px` : props.height || "auto");
+    if (props.isAbsolute) {
+        style.position = "absolute";
+        style.left = `${props.x || 0}px`;
+        style.top = `${props.y || 0}px`;
+    } else {
+        style.position = "relative";
+    }
 
+    processedProps.style = style;
+    processedProps.className = `${processedProps.className || ""} craft-node-renderer`.trim();
+
+    // Clean up custom positioning props so they don't get passed to DOM elements
+    delete processedProps.isAbsolute;
+    delete processedProps.x;
+    delete processedProps.y;
+    delete processedProps.width;
+    delete processedProps.height;
+    delete processedProps.padding;
+    delete processedProps.margin;
+    delete processedProps.zIndex;
+    delete processedProps.opacity;
+    delete processedProps.borderRadius;
+    delete processedProps.boxShadow;
+    delete processedProps.href; // Added href cleanup
+
+    // Container flexbox mappings
+    if (ComponentType === "div" && resolvedName === "Container") {
         processedProps.style = {
             ...processedProps.style,
-            position: "absolute",
-            '--x': `${props.x || 0}px`,
-            '--y': `${props.y || 0}px`,
-            '--width': typeof props.width === 'number' ? `${props.width}px` : props.width || "auto",
-            '--height': typeof props.height === 'number' ? `${props.height}px` : props.height || "auto",
-
-            // Mobile variables (fallback to desktop if mobile not defined)
-            '--m-x': props.mobileX !== undefined ? `${props.mobileX}px` : `${props.x || 0}px`,
-            '--m-y': props.mobileY !== undefined ? `${props.mobileY}px` : `${props.y || 0}px`,
-            '--m-width': mWidth,
-            '--m-height': mHeight,
-
-            zIndex: props.zIndex || 1,
-            opacity: (props.opacity !== undefined ? props.opacity : 100) / 100,
-            borderRadius: props.borderRadius || "0px",
-            boxShadow: props.boxShadow || "none",
-        } as React.CSSProperties;
-
-        // Add the responsive CSS class
-        processedProps.className = `${processedProps.className || ""} craft-node-renderer`.trim();
-
-        // Clean up custom positioning props so they don't get passed to DOM elements
-        delete processedProps.x;
-        delete processedProps.y;
-        delete processedProps.width;
-        delete processedProps.height;
-        delete processedProps.mobileX;
-        delete processedProps.mobileY;
-        delete processedProps.mobileWidth;
-        delete processedProps.mobileHeight;
-        delete processedProps.zIndex;
-        delete processedProps.opacity;
-        delete processedProps.borderRadius;
-        delete processedProps.boxShadow;
-        delete processedProps.href; // Added href cleanup
-    }
-
-    // Clean up undefined/null values or non-standard DOM props
-    if (ComponentType === "div" && (typeof type !== "string" && type?.resolvedName === "Container")) {
-        processedProps.style = {
             background: props.background,
-            padding: props.padding,
-            margin: props.margin,
+            display: "flex",
+            flexDirection: props.flexDirection || "column",
+            alignItems: props.alignItems || "flex-start",
+            justifyContent: props.justifyContent || "flex-start",
+            gap: props.gap || "0px",
+            minHeight: "50px",
         };
-        processedProps.className = "flex flex-col w-full";
+        processedProps.className = `${processedProps.className || ""} w-full h-full`.trim();
         // remove non-standard DOM props
         delete processedProps.background;
-        delete processedProps.padding;
-        delete processedProps.margin;
+        delete processedProps.flexDirection;
+        delete processedProps.alignItems;
+        delete processedProps.justifyContent;
+        delete processedProps.gap;
     }
 
-    const resolvedName = typeof type === "string" ? type : type?.resolvedName;
+    // resolvedName is already retrieved above
 
     if (resolvedName === "Text") {
         processedProps.style = {
@@ -211,8 +208,22 @@ export function DynamicRenderer({ nodes, rootNodeId = "ROOT" }: { nodes: Seriali
 
     // If there's an href, wrap the entire element in an anchor tag so it becomes clickable
     if (props.href) {
+        const anchorStyle: React.CSSProperties = {
+            zIndex: props.zIndex || 1,
+            display: "inline-block",
+            width: processedProps.style.width,
+            height: processedProps.style.height,
+        };
+        if (props.isAbsolute) {
+            anchorStyle.position = "absolute";
+            anchorStyle.left = `${props.x || 0}px`;
+            anchorStyle.top = `${props.y || 0}px`;
+        } else {
+            anchorStyle.position = "relative";
+        }
+        
         return (
-            <a href={props.href} style={{ position: "absolute", zIndex: props.zIndex || 1, left: `${props.x || 0}px`, top: `${props.y || 0}px` }}>
+            <a href={props.href} style={anchorStyle}>
                 {React.cloneElement(renderedElement as React.ReactElement<any>, {
                     style: { ...processedProps.style, position: "relative", left: 0, top: 0, zIndex: 'auto' }
                 })}

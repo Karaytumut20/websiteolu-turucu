@@ -1,25 +1,25 @@
 "use client";
 import React from "react";
 import { useNode, Element } from "@craftjs/core";
-import { ElementWrapper } from "./ElementWrapper";
+import { FreeformWrapper } from "./FreeformWrapper";
 import { Container } from "./Container";
 import { Heading } from "./Heading";
 import { Text } from "./Text";
 import { Button } from "./Button";
 
-export const PricingTable = React.forwardRef(({
+export const PricingTable = ({
     href,
-    x = 0, y = 0, width = "100%", height = "auto",
-    mobileX, mobileY, mobileWidth, mobileHeight,
+    width = "100%", height = "auto", padding, margin,
+    isAbsolute = true, x = 0, y = 0,
     zIndex = 1, opacity = 100, borderRadius = "0px", boxShadow = "none"
-}: any, ref) => {
+}: any) => {
     return (
-        <ElementWrapper
-            x={x} y={y} width={width} height={height}
-            mobileX={mobileX} mobileY={mobileY} mobileWidth={mobileWidth} mobileHeight={mobileHeight}
+        <FreeformWrapper
+            width={width} height={height} padding={padding} margin={margin}
+            isAbsolute={isAbsolute} x={x} y={y}
             zIndex={zIndex} opacity={opacity} borderRadius={borderRadius} boxShadow={boxShadow}
         >
-            <div ref={ref as any} className="w-full py-16 px-4 bg-gray-50 rounded-2xl">
+            <div className="w-full py-16 px-4 bg-gray-50 rounded-2xl">
                 <Element id="pricing-wrapper" is={Container} padding="0px" background="transparent" canvas>
                     <Element id="pricing-header" is={Heading} text="Simple, transparent pricing" level={2} textAlign="center" />
                     <Element id="pricing-sub" is={Text} text="No hidden fees. No surprise charges." fontSize={16} textAlign="center" />
@@ -70,9 +70,9 @@ export const PricingTable = React.forwardRef(({
                     </div>
                 </Element>
             </div>
-        </ElementWrapper>
+        </FreeformWrapper>
     );
-});
+};
 
 export const PricingTableSettings = () => {
     return (
@@ -82,10 +82,11 @@ export const PricingTableSettings = () => {
     );
 };
 
-(PricingTable as any).craft = {
+PricingTable.craft = {
+    displayName: "PricingTable",
     props: {
-        x: 0, y: 0, width: "100%", height: "auto",
-        mobileX: 0, mobileY: 0, mobileWidth: "100%", mobileHeight: "auto",
+        width: "100%", height: "auto", padding: "0px", margin: "0px",
+        isAbsolute: false, x: 0, y: 0,
         zIndex: 1, opacity: 100, borderRadius: "0px", boxShadow: "none"
     },
     related: {

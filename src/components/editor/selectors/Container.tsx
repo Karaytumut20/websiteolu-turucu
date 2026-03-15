@@ -1,90 +1,84 @@
 "use client";
 import React from "react";
 import { useNode } from "@craftjs/core";
-import { CommonElementProps } from "./ElementWrapper";
+import { CommonElementProps, FreeformWrapper } from "./FreeformWrapper";
 
 export interface ContainerProps extends CommonElementProps {
     background?: string;
-    padding?: string;
-    margin?: string;
+    // Flex Layout properties for children
+    flexDirection?: "row" | "column";
+    alignItems?: "flex-start" | "center" | "flex-end" | "stretch";
+    justifyContent?: "flex-start" | "center" | "flex-end" | "space-between" | "space-around";
+    gap?: string;
+    // Canvas switch
+    isCanvasContext?: boolean;
     children?: React.ReactNode;
 }
 
-export const Container = React.forwardRef<HTMLDivElement, ContainerProps>(({
+export const Container = ({
     background = "#ffffff",
     padding = "20px",
     margin = "0px",
+    flexDirection = "column",
+    alignItems = "flex-start",
+    justifyContent = "flex-start",
+    gap = "0px",
+    width = "100%",
+    height = "auto",
+    isAbsolute = true,
+    isCanvasContext = false,
+    x = 0, y = 0, zIndex = 1, opacity = 100, borderRadius = "0px", boxShadow = "none",
     children,
-}, ref) => {
-    const { connectors: { connect, drag } } = useNode();
+}: ContainerProps) => {
     return (
-        <div
-            ref={(node: HTMLDivElement | null) => {
-                if (node) {
-                    connect(drag(node) as any);
-                    if (typeof ref === 'function') ref(node);
-                    else if (ref) ref.current = node;
-                }
-            }}
-            style={{ background, padding, margin, minHeight: "200px", border: "1px dashed #ccc", position: "relative" }}
-            className="w-full h-full"
+        <FreeformWrapper
+            width={width} height={height} padding={padding} margin={margin}
+            isAbsolute={isAbsolute} x={x} y={y}
+            zIndex={zIndex} opacity={opacity} borderRadius={borderRadius} boxShadow={boxShadow}
         >
-            {children}
-        </div>
-    );
-});
-
-export const ContainerSettings = () => {
-    const { background, padding, margin, actions: { setProp } } = useNode((node) => ({
-        background: node.data.props.background,
-        padding: node.data.props.padding,
-        margin: node.data.props.margin,
-    }));
-
-    return (
-        <div className="flex flex-col gap-4 p-4">
-            <div>
-                <label className="text-sm font-medium">Background Color</label>
-                <input
-                    type="color"
-                    value={background}
-                    onChange={(e) => setProp((props: any) => props.background = e.target.value)}
-                    className="w-full mt-1 h-10 px-1 py-1 rounded"
-                />
+            <div
+                style={{ 
+                    background,
+                    display: isCanvasContext ? "block" : "flex",
+                    flexDirection: isCanvasContext ? undefined : flexDirection,
+                    alignItems: isCanvasContext ? undefined : alignItems,
+                    justifyContent: isCanvasContext ? undefined : justifyContent,
+                    gap: isCanvasContext ? undefined : gap,
+                    minHeight: "50px", // A base so empty containers don't collapse fully
+                    position: "relative" // Ensure nested absolute items stay in bounds
+                }}
+                className="w-full h-full"
+            >
+                {children}
             </div>
-            <div>
-                <label className="text-sm font-medium">Padding (px)</label>
-                <input
-                    type="text"
-                    value={padding}
-                    onChange={(e) => setProp((props: any) => props.padding = e.target.value)}
-                    className="w-full mt-1 border rounded px-2 py-1"
-                />
-            </div>
-            <div>
-                <label className="text-sm font-medium">Margin (px)</label>
-                <input
-                    type="text"
-                    value={margin}
-                    onChange={(e) => setProp((props: any) => props.margin = e.target.value)}
-                    className="w-full mt-1 border rounded px-2 py-1"
-                />
-            </div>
-        </div>
+        </FreeformWrapper>
     );
 };
 
-(Container as any).craft = {
-    selected: ContainerSettings,
+export const ContainerSettings = () => {
+    // Settings logic moved to main SettingsPanel for global handling, but we leave the blank component for Craft to bind.
+    return null;
+};
+
+Container.craft = {
+    displayName: "Container",
     props: {
         background: "#ffffff",
         padding: "20px",
         margin: "0px",
-        x: 0, y: 0, width: "100%", height: "100%",
-        mobileX: 0, mobileY: 0, mobileWidth: "100%", mobileHeight: "100%",
+        flexDirection: "column",
+        alignItems: "flex-start",
+        justifyContent: "flex-start",
+        gap: "0px",
+        width: "100%", height: "auto",
+        isAbsolute: false, x: 0, y: 0,
         zIndex: 1, opacity: 100, borderRadius: "0px", boxShadow: "none"
+    },
+    related: {
+        settings: ContainerSettings,
     },
     rules: {
         canDrag: () => true,
+        canMoveIn: () => true, // Ensure we can drop things inside
     },
 };

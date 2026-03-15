@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { useNode } from "@craftjs/core";
-import { ElementWrapper, CommonElementProps } from "./ElementWrapper";
+import { FreeformWrapper, CommonElementProps } from "./FreeformWrapper";
 
 export interface ButtonProps extends CommonElementProps {
     text?: string;
@@ -11,14 +11,12 @@ export interface ButtonProps extends CommonElementProps {
     href?: string;
 }
 
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
-    text = "Click Me", size = "default", variant = "default", color = "#0f172a", href,
-    x = 0, y = 0, width = "auto", height = "auto",
-    mobileX, mobileY, mobileWidth, mobileHeight,
-    zIndex = 1, opacity = 100, borderRadius = "0px", boxShadow = "none"
-}, ref) => {
-    const { connectors: { connect } } = useNode();
-
+export const Button = ({
+    text = "Click Me", size = "default", variant = "default", color = "var(--builder-primary)", href,
+    width = "auto", height = "auto", padding, margin,
+    isAbsolute = true, x = 0, y = 0,
+    zIndex = 1, opacity = 100, borderRadius = "var(--builder-radius)", boxShadow = "none"
+}: ButtonProps) => {
     const baseClasses = "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50";
     const sizeClasses = {
         default: "h-10 px-4 py-2",
@@ -31,21 +29,20 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
     };
 
     return (
-        <ElementWrapper
-            x={x} y={y} width={width} height={height}
-            mobileX={mobileX} mobileY={mobileY} mobileWidth={mobileWidth} mobileHeight={mobileHeight}
+        <FreeformWrapper
+            width={width} height={height} padding={padding} margin={margin}
+            isAbsolute={isAbsolute} x={x} y={y}
             zIndex={zIndex} opacity={opacity} borderRadius={borderRadius} boxShadow={boxShadow}
         >
             <button
-                ref={ref}
                 className={`w-full h-full ${baseClasses} ${sizeClasses[size as keyof typeof sizeClasses]} ${variantClasses[variant as keyof typeof variantClasses]}`}
                 style={{ backgroundColor: variant === "default" && color ? color : undefined }}
             >
                 {text}
             </button>
-        </ElementWrapper>
+        </FreeformWrapper>
     );
-});
+};
 
 export const ButtonSettings = () => {
     const { actions: { setProp }, text, size, variant, color } = useNode((node) => ({
@@ -104,17 +101,18 @@ export const ButtonSettings = () => {
     );
 };
 
-(Button as any).craft = {
+Button.craft = {
+    displayName: "Button",
     props: {
         text: "Click Me",
         size: "default",
         variant: "default",
-        color: "#0f172a",
-        x: 0, y: 0, width: "auto", height: "auto",
-        mobileX: 0, mobileY: 0, mobileWidth: "auto", mobileHeight: "auto",
-        zIndex: 1, opacity: 100, borderRadius: "0px", boxShadow: "none"
+        color: "var(--builder-primary)",
+        width: "auto", height: "auto", padding: "0px", margin: "0px",
+        isAbsolute: false, x: 0, y: 0,
+        zIndex: 1, opacity: 100, borderRadius: "var(--builder-radius)", boxShadow: "none"
     },
     related: {
-        settings: ButtonSettings,
-    },
+        settings: ButtonSettings
+    }
 };

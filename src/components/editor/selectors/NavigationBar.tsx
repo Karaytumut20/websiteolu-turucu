@@ -1,23 +1,23 @@
 "use client";
 import React from "react";
 import { useNode, Element } from "@craftjs/core";
-import { ElementWrapper } from "./ElementWrapper";
+import { FreeformWrapper } from "./FreeformWrapper";
 import { Text } from "./Text";
 import { Button } from "./Button";
 
-export const NavigationBar = React.forwardRef(({
+export const NavigationBar = ({
     backgroundColor = "#ffffff", href,
-    x = 0, y = 0, width = "100%", height = "70px",
-    mobileX, mobileY, mobileWidth, mobileHeight,
+    width = "100%", height = "70px", padding, margin,
+    isAbsolute = true, x = 0, y = 0,
     zIndex = 50, opacity = 100, borderRadius = "0px", boxShadow = "0 1px 3px rgba(0,0,0,0.1)"
-}: any, ref) => {
+}: any) => {
     return (
-        <ElementWrapper
-            x={x} y={y} width={width} height={height}
-            mobileX={mobileX} mobileY={mobileY} mobileWidth={mobileWidth} mobileHeight={mobileHeight}
+        <FreeformWrapper
+            width={width} height={height} padding={padding} margin={margin}
+            isAbsolute={isAbsolute} x={x} y={y}
             zIndex={zIndex} opacity={opacity} borderRadius={borderRadius} boxShadow={boxShadow}
         >
-            <header ref={ref as any} className="w-full h-full flex items-center justify-between px-6 md:px-10" style={{ backgroundColor }}>
+            <header className="w-full h-full flex items-center justify-between px-6 md:px-10" style={{ backgroundColor }}>
 
                 <div className="flex items-center gap-2 font-bold text-xl tracking-tighter">
                     <div className="w-8 h-8 rounded-md bg-indigo-600 flex items-center justify-center text-white">L</div>
@@ -37,9 +37,9 @@ export const NavigationBar = React.forwardRef(({
                 </div>
 
             </header>
-        </ElementWrapper>
+        </FreeformWrapper>
     );
-});
+};
 
 export const NavigationBarSettings = () => {
     const { actions: { setProp }, backgroundColor } = useNode((node) => ({
@@ -61,11 +61,12 @@ export const NavigationBarSettings = () => {
     );
 };
 
-(NavigationBar as any).craft = {
+NavigationBar.craft = {
+    displayName: "NavigationBar",
     props: {
         backgroundColor: "#ffffff",
-        x: 0, y: 0, width: "100%", height: "70px",
-        mobileX: 0, mobileY: 0, mobileWidth: "100%", mobileHeight: "70px",
+        width: "100%", height: "70px", padding: "0px", margin: "0px",
+        isAbsolute: false, x: 0, y: 0,
         zIndex: 50, opacity: 100, borderRadius: "0px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
     },
     related: {

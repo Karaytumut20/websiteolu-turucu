@@ -1,39 +1,41 @@
 "use client";
 import React from "react";
 import { useNode } from "@craftjs/core";
-import { ElementWrapper, CommonElementProps } from "./ElementWrapper";
+import { FreeformWrapper, CommonElementProps } from "./FreeformWrapper";
 
 export interface ImageProps extends CommonElementProps {
     src?: string;
     alt?: string;
     objectFit?: any;
     href?: string;
+    padding?: string;
+    margin?: string;
+    isAbsolute?: boolean;
 }
 
-export const Image = React.forwardRef<HTMLDivElement, ImageProps>(({
+export const Image = ({
     src, alt, objectFit, href,
-    width = "300px", height = "auto",
-    x = 0, y = 0,
-    mobileX, mobileY, mobileWidth, mobileHeight,
+    width = "300px", height = "auto", padding, margin,
+    isAbsolute = true, x = 0, y = 0,
     zIndex = 1, opacity = 100, borderRadius = "0px", boxShadow = "none"
-}, ref) => {
+}: ImageProps) => {
 
     return (
-        <ElementWrapper
-            x={x} y={y} width={width} height={height}
-            mobileX={mobileX} mobileY={mobileY} mobileWidth={mobileWidth} mobileHeight={mobileHeight}
+        <FreeformWrapper
+            width={width} height={height} padding={padding} margin={margin}
+            isAbsolute={isAbsolute} x={x} y={y}
             zIndex={zIndex} opacity={opacity} borderRadius={borderRadius} boxShadow={boxShadow}
         >
-            <div ref={ref as any} className="w-full h-full">
+            <div className="w-full h-full">
                 <img
                     src={src}
                     alt={alt}
                     style={{ width: "100%", height: "100%", objectFit }}
                 />
             </div>
-        </ElementWrapper>
+        </FreeformWrapper>
     );
-});
+};
 
 export const ImageSettings = () => {
     const { actions: { setProp }, src, alt, width, height, objectFit } = useNode((node) => ({
@@ -100,16 +102,17 @@ export const ImageSettings = () => {
     );
 };
 
-(Image as any).craft = {
+Image.craft = {
+    displayName: "Image",
     props: {
         src: "https://via.placeholder.com/300x200",
         alt: "Placeholder Image",
         objectFit: "cover",
-        x: 0, y: 0, width: "300px", height: "200px",
-        mobileX: 0, mobileY: 0, mobileWidth: "300px", mobileHeight: "200px",
+        width: "300px", height: "auto", padding: "0px", margin: "0px",
+        isAbsolute: false, x: 0, y: 0,
         zIndex: 1, opacity: 100, borderRadius: "0px", boxShadow: "none"
     },
     related: {
-        settings: ImageSettings,
-    },
+        settings: ImageSettings
+    }
 };

@@ -1,16 +1,7 @@
 "use client";
 import React from 'react';
 import { useEditor, Element } from '@craftjs/core';
-import { Container } from './selectors/Container';
-import { Text } from './selectors/Text';
-import { Button } from './selectors/Button';
-import { Image } from './selectors/Image';
-import { Heading } from './selectors/Heading';
-import { HeroSection } from './selectors/HeroSection';
-import { InfoCard } from './selectors/InfoCard';
-import { PricingTable } from './selectors/PricingTable';
-import { NavigationBar } from './selectors/NavigationBar';
-import { Type, BoxSelect, SquareFunction, Image as ImageIcon, Heading1, LayoutTemplate, PanelTop, CreditCard, Navigation } from 'lucide-react';
+import { Type, BoxSelect, SquareFunction, Image as ImageIcon, Heading1, LayoutTemplate, PanelTop, CreditCard, Navigation, Youtube, Star, Minus, PanelBottom, MessageSquareQuote, LayoutGrid, Code, LayoutList } from 'lucide-react';
 
 export const Toolbox = () => {
     const { connectors } = useEditor();
@@ -19,47 +10,87 @@ export const Toolbox = () => {
         {
             icon: <BoxSelect size={16} className="text-foreground" />,
             name: "Container",
-            element: <Element is={Container} padding="20px" canvas />
+            element: <Element is="Container" padding="20px" canvas isAbsolute={true} />
         },
         {
             icon: <Heading1 size={16} className="text-foreground" />,
             name: "Heading",
-            element: <Heading text="New Heading" />
+            element: <Element is="Heading" text="New Heading" isAbsolute={true} />
         },
         {
             icon: <Type size={16} className="text-foreground" />,
             name: "Text",
-            element: <Text text="New Text Block" />
+            element: <Element is="Text" text="New Text Block" isAbsolute={true} />
         },
         {
             icon: <SquareFunction size={16} className="text-foreground" />,
             name: "Button",
-            element: <Button text="Click Me" />
+            element: <Element is="Button" text="Click Me" isAbsolute={true} />
         },
         {
             icon: <ImageIcon size={16} className="text-foreground" />,
             name: "Image",
-            element: <Image />
+            element: <Element is="Image" isAbsolute={true} />
         },
         {
             icon: <PanelTop size={16} className="text-primary" />,
             name: "Hero Section",
-            element: <HeroSection />
+            element: <Element is="HeroSection" isAbsolute={true} />
         },
         {
             icon: <LayoutTemplate size={16} className="text-primary" />,
             name: "Info Card",
-            element: <InfoCard />
+            element: <Element is="InfoCard" isAbsolute={true} />
         },
         {
             icon: <CreditCard size={16} className="text-primary" />,
             name: "Pricing",
-            element: <PricingTable />
+            element: <Element is="PricingTable" isAbsolute={true} />
         },
         {
             icon: <Navigation size={16} className="text-primary" />,
             name: "Navbar",
-            element: <NavigationBar />
+            element: <Element is="NavigationBar" isAbsolute={true} />
+        },
+        {
+            icon: <Youtube size={16} className="text-red-500" />,
+            name: "Video",
+            element: <Element is="Video" isAbsolute={true} />
+        },
+        {
+            icon: <Star size={16} className="text-amber-500" />,
+            name: "Icon",
+            element: <Element is="Icon" isAbsolute={true} />
+        },
+        {
+            icon: <Minus size={16} className="text-gray-500" />,
+            name: "Divider",
+            element: <Element is="Divider" isAbsolute={true} />
+        },
+        {
+            icon: <MessageSquareQuote size={16} className="text-purple-500" />,
+            name: "Reviews",
+            element: <Element is="Testimonials" isAbsolute={true} />
+        },
+        {
+            icon: <LayoutGrid size={16} className="text-blue-400" />,
+            name: "Gallery",
+            element: <Element is="Gallery" isAbsolute={true} />
+        },
+        {
+            icon: <Code size={16} className="text-pink-500" />,
+            name: "Custom HTML",
+            element: <Element is="CustomHTML" isAbsolute={true} />
+        },
+        {
+            icon: <LayoutList size={16} className="text-emerald-500" />,
+            name: "Collection",
+            element: <Element is="CollectionList" isAbsolute={true} />
+        },
+        {
+            icon: <PanelBottom size={16} className="text-slate-800 dark:text-gray-300" />,
+            name: "Footer",
+            element: <Element is="Footer" isAbsolute={true} />
         }
     ];
 

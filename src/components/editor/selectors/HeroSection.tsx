@@ -1,25 +1,25 @@
 "use client";
 import React from "react";
 import { useNode, Element } from "@craftjs/core";
-import { ElementWrapper } from "./ElementWrapper";
+import { FreeformWrapper } from "./FreeformWrapper";
 import { Container } from "./Container";
 import { Heading } from "./Heading";
 import { Text } from "./Text";
 import { Button } from "./Button";
 
-export const HeroSection = React.forwardRef(({
+export const HeroSection = ({
     background = "#f8fafc", href,
-    x = 0, y = 0, width = "100%", height = "auto",
-    mobileX, mobileY, mobileWidth, mobileHeight,
+    width = "100%", height = "auto", padding, margin,
+    isAbsolute = true, x = 0, y = 0,
     zIndex = 1, opacity = 100, borderRadius = "0px", boxShadow = "none"
-}: any, ref) => {
+}: any) => {
     return (
-        <ElementWrapper
-            x={x} y={y} width={width} height={height}
-            mobileX={mobileX} mobileY={mobileY} mobileWidth={mobileWidth} mobileHeight={mobileHeight}
+        <FreeformWrapper
+            width={width} height={height} padding={padding} margin={margin}
+            isAbsolute={isAbsolute} x={x} y={y}
             zIndex={zIndex} opacity={opacity} borderRadius={borderRadius} boxShadow={boxShadow}
         >
-            <div ref={ref as any} className="w-full relative py-24 px-6 md:px-12 lg:px-24 rounded-2xl overflow-hidden shadow-sm" style={{ background }}>
+            <div className="w-full relative py-24 px-6 md:px-12 lg:px-24 rounded-2xl overflow-hidden shadow-sm" style={{ background }}>
                 <Element id="hero-container" is={Container} padding="0px" canvas>
                     <Element id="hero-title" is={Heading} text="Elevate Your Vision" level={1} textAlign="center" color="#0f172a" />
                     <Element id="hero-subtitle" is={Text} text="Build stunning digital experiences with our advanced visual editor. No code required." fontSize={18} textAlign="center" />
@@ -29,9 +29,9 @@ export const HeroSection = React.forwardRef(({
                     </div>
                 </Element>
             </div>
-        </ElementWrapper>
+        </FreeformWrapper>
     );
-});
+};
 
 export const HeroSectionSettings = () => {
     const { actions: { setProp }, background } = useNode((node) => ({
@@ -53,11 +53,12 @@ export const HeroSectionSettings = () => {
     );
 };
 
-(HeroSection as any).craft = {
+HeroSection.craft = {
+    displayName: "HeroSection",
     props: {
         background: "#f8fafc",
-        x: 0, y: 0, width: "100%", height: "auto",
-        mobileX: 0, mobileY: 0, mobileWidth: "100%", mobileHeight: "auto",
+        width: "100%", height: "auto", padding: "0px", margin: "0px",
+        isAbsolute: false, x: 0, y: 0,
         zIndex: 1, opacity: 100, borderRadius: "0px", boxShadow: "none"
     },
     related: {

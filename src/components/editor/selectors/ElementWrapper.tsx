@@ -1,18 +1,16 @@
-"use client";
-import React, { useEffect, useState } from "react";
-import { Rnd } from "react-rnd";
-import { useNode } from "@craftjs/core";
-import { useDevice } from "../DeviceContext";
+import React from "react";
+import { useNode, useEditor } from "@craftjs/core";
 
 export interface CommonElementProps {
-    x?: number;
-    y?: number;
+    // Relative Flexbox/Grid properties
+    padding?: string;
+    margin?: string;
     width?: string | number;
     height?: string | number;
-    mobileX?: number;
-    mobileY?: number;
-    mobileWidth?: string | number;
-    mobileHeight?: string | number;
+    // Absolute layout properties (Hybrid layout)
+    isAbsolute?: boolean; 
+    x?: number;
+    y?: number;
     zIndex?: number;
     opacity?: number;
     borderRadius?: string;
@@ -25,107 +23,148 @@ export interface ElementWrapperProps extends CommonElementProps {
 
 export const ElementWrapper = ({
     children,
-    x, y, width, height,
-    mobileX, mobileY, mobileWidth, mobileHeight,
+    width = "auto", height = "auto",
+    padding, margin,
+    isAbsolute = false,
+    x = 0, y = 0,
     zIndex, opacity = 100, borderRadius = "0px", boxShadow = "none"
 }: ElementWrapperProps) => {
-    const { isSelected, isHovered, name, actions: { setProp }, connectors: { connect } } = useNode((node) => ({
-        isSelected: node.events.selected,
-        isHovered: node.events.hovered,
-        name: node.data.displayName || node.data.name,
+    const { id } = useNode();
+    const { connectors: { connect, drag } } = useNode();
+    const { isDragging, actions, query } = useEditor((state) => ({
+        isDragging: state.events.dragged !== null,
     }));
-    const { device } = useDevice();
-    const [isManipulating, setIsManipulating] = useState(false);
 
-    const activeX = (device === 'mobile' && mobileX !== undefined) ? mobileX : (x || 0);
-    const activeY = (device === 'mobile' && mobileY !== undefined) ? mobileY : (y || 0);
-    const activeWidth = (device === 'mobile' && mobileWidth !== undefined) ? mobileWidth : (width || "auto");
-    const activeHeight = (device === 'mobile' && mobileHeight !== undefined) ? mobileHeight : (height || "auto");
+    const domRef = React.useRef<HTMLDivElement | null>(null);
 
-    const [position, setPosition] = useState({ x: activeX, y: activeY });
-    const [size, setSize] = useState({ width: activeWidth, height: activeHeight });
-
-    useEffect(() => {
-        if (!isManipulating) {
-            setPosition({ x: activeX, y: activeY });
+    // Initial Drop Sizing & Positioning Logic for newly spawned Absolute Items from the Toolbox
+    React.useEffect(() => {
+        // Only run once on mount if it's explicitly spawned as absolute at 0,0 
+        if (isAbsolute && x === 0 && y === 0) {
+            const el = domRef.current;
+            if (el && el.parentElement) {
+                // Ensure the parent container has relative or absolute positioning
+                if (window.getComputedStyle(el.parentElement).position === 'static') {
+                    el.parentElement.style.position = 'relative';
+                }
+                
+                const parentRect = el.parentElement.getBoundingClientRect();
+                const mX = (window as any).lastCraftMouseX;
+                const mY = (window as any).lastCraftMouseY;
+                
+                if (mX !== undefined && mY !== undefined) {
+                    // Calculate drop position relative to parent
+                    // We offset by 20px so the top-left corner is slightly above the mouse for better visual grounding
+                    let dropX = mX - parentRect.left - 20;
+                    let dropY = mY - parentRect.top - 20;
+                    
+                    // Snap to grid
+                    dropX = Math.max(0, Math.round(dropX / 10) * 10);
+                    dropY = Math.max(0, Math.round(dropY / 10) * 10);
+                    
+                    // Allow Craft's DOM tree to settle before updating props
+                    setTimeout(() => {
+                        actions.setProp(id, (p: any) => {
+                            p.x = dropX;
+                            p.y = dropY;
+                        });
+                    }, 10);
+                }
+            }
         }
-    }, [activeX, activeY, isManipulating]);
+    }, []); // Run ONCE on mount
 
-    useEffect(() => {
-        if (!isManipulating) {
-            setSize({ width: activeWidth, height: activeHeight });
+    // Freeform XY Dragging Logic
+    const handlePointerDown = (e: React.PointerEvent) => {
+        if (!isAbsolute) return;
+        // Don't drag if clicking inside a button, input, or text explicitly (unless holding a modifier, but simple for now)
+        if (["BUTTON", "INPUT", "TEXTAREA", "SELECT", "OPTION"].includes((e.target as HTMLElement).tagName)) {
+            return;
         }
-    }, [activeWidth, activeHeight, device, isManipulating]);
+        
+        // Prevent default interactions that might interrupt pointer capture
+        e.stopPropagation();
+        e.currentTarget.setPointerCapture(e.pointerId);
 
-    const showIndicator = isSelected || isHovered;
+        const startMouseX = e.clientX;
+        const startMouseY = e.clientY;
+        const startNodeX = x;
+        const startNodeY = y;
+
+        const onPointerMove = (moveEv: PointerEvent) => {
+            let newX = startNodeX + (moveEv.clientX - startMouseX);
+            let newY = startNodeY + (moveEv.clientY - startMouseY);
+
+            // Snapping to grid (Grid size: 10px)
+            const gridSize = 10;
+            if (!moveEv.shiftKey) { // Hold shift to disable snapping
+                newX = Math.round(newX / gridSize) * gridSize;
+                newY = Math.round(newY / gridSize) * gridSize;
+            }
+
+            // Immediately update the Craft node properties
+            actions.setProp(id, (props: any) => {
+                props.x = newX;
+                props.y = newY;
+            });
+        };
+
+        const onPointerUp = (upEv: PointerEvent) => {
+            const target = upEv.currentTarget as HTMLElement;
+            if (target && target.releasePointerCapture) {
+                target.releasePointerCapture(upEv.pointerId);
+            }
+            window.removeEventListener("pointermove", onPointerMove);
+            window.removeEventListener("pointerup", onPointerUp);
+        };
+
+        window.addEventListener("pointermove", onPointerMove);
+        window.addEventListener("pointerup", onPointerUp);
+    };
+
+    // In a smart layout engine, elements are inline/block elements managed by flexbox.
+    // However, if the user explicitly turns on "absolute positioning", we respect x/y bounds.
+    const style: React.CSSProperties = {
+        width: typeof width === "number" ? `${width}px` : width,
+        height: typeof height === "number" ? `${height}px` : height,
+        padding,
+        margin,
+        opacity: (opacity !== undefined ? opacity : 100) / 100,
+        borderRadius: borderRadius || "0px",
+        boxShadow: boxShadow || "none",
+        zIndex: zIndex || 1,
+        transition: isDragging ? "none" : "all 0.1s ease-out",
+    };
+
+    if (isAbsolute) {
+        style.position = "absolute";
+        style.left = `${x}px`;
+        style.top = `${y}px`;
+        style.cursor = "move";
+    } else {
+        style.position = "relative";
+    }
 
     return (
-        <Rnd
-            size={size}
-            position={position}
-            onDragStart={() => setIsManipulating(true)}
-            onDrag={(e, d) => setPosition({ x: d.x, y: d.y })}
-            onDragStop={(e, d) => {
-                setIsManipulating(false);
-                setProp((props: any) => {
-                    if (device === 'mobile') {
-                        props.mobileX = d.x;
-                        props.mobileY = d.y;
+        <div 
+            ref={(ref) => {
+                domRef.current = ref;
+                if (ref) {
+                    if (isAbsolute) {
+                        // When Absolute, Craft must NOT interpret it as a sortable drag, 
+                        // so we only connect it as a droppable target (for dropping nested children).
+                        connect(ref as HTMLElement);
                     } else {
-                        props.x = d.x;
-                        props.y = d.y;
+                        // When Relative, use Craft's standard flow drag-and-drop
+                        connect(drag(ref as HTMLElement));
                     }
-                });
-            }}
-            onResizeStart={() => setIsManipulating(true)}
-            onResize={(e, direction, ref, delta, position) => {
-                setSize({ width: ref.style.width, height: ref.style.height });
-                setPosition(position);
-            }}
-            onResizeStop={(e, direction, ref, delta, position) => {
-                setIsManipulating(false);
-                setProp((props: any) => {
-                    if (device === 'mobile') {
-                        props.mobileWidth = ref.style.width;
-                        props.mobileHeight = ref.style.height;
-                        props.mobileX = position.x;
-                        props.mobileY = position.y;
-                    } else {
-                        props.width = ref.style.width;
-                        props.height = ref.style.height;
-                        props.x = position.x;
-                        props.y = position.y;
-                    }
-                });
-            }}
-            bounds="parent"
-            disableDragging={!isSelected}
-            enableResizing={isSelected ? {
-                top: true, right: true, bottom: true, left: true,
-                topRight: true, bottomRight: true, bottomLeft: true, topLeft: true
-            } : false}
-            style={{
-                zIndex: isSelected ? 100 : (zIndex || 1),
-                position: "absolute",
-                opacity: (opacity !== undefined ? opacity : 100) / 100,
-                borderRadius: borderRadius || "0px",
-                boxShadow: boxShadow || "none",
-            }}
-            className={`
-                ${!isManipulating ? "transition-all duration-300 ease-in-out" : ""} 
-                ${showIndicator ? "border-2 border-primary border-dashed !z-[100]" : "border-2 border-transparent"}
-                relative group
-            `}
+                }
+            }} 
+            style={style} 
+            className={`craft-element max-w-full ${isAbsolute ? 'hover:outline-dashed hover:outline-1 hover:outline-blue-400' : ''}`}
+            onPointerDown={handlePointerDown}
         >
-            {showIndicator && (
-                <div className="absolute -top-[22px] -left-0.5 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-t-sm uppercase tracking-wider whitespace-nowrap z-[101]">
-                    {name}
-                </div>
-            )}
-            
-            <div ref={connect as any} className="w-full h-full">
-                {children}
-            </div>
-        </Rnd>
+            {children}
+        </div>
     );
 };
